@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fun Tracker Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif;}
+    body { background:#121212; color:#fff;}
+
+    /* Navbar */
+    nav{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:20px 40px;
+        backdrop-filter: blur(10px);
+        background: rgba(30,30,30,0.7);
+        position: sticky;
+        top:0;
+        z-index:100;
+    }
+    nav h1{ font-weight:600; color:#00ffdd;}
+    nav .profile{ width:40px; height:40px; border-radius:50%; background:#ff6ec7; cursor:pointer;}
+
+    /* Container */
+    .container{ max-width:1200px; margin:30px auto; padding:0 20px;}
+
+    /* Today’s Tasks */
+    .today-tasks{
+        background:#1e1e1e;
+        border-radius:15px;
+        padding:20px;
+        box-shadow:0 0 25px rgba(0,255,221,0.3);
+        margin-bottom:30px;
+        max-height:400px;
+        overflow-y:auto;
+    }
+    .today-tasks h2{ color:#00ffdd; margin-bottom:15px; }
+    .task-item{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        background:#2a2a2a;
+        padding:12px 15px;
+        border-radius:10px;
+        margin-bottom:10px;
+        transition: all 0.2s;
+    }
+    .task-item:hover{ background:#333; }
+
+    .task-item input[type="checkbox"]{
+        width:18px;
+        height:18px;
+        accent-color:#00ffdd;
+    }
+
+    /* Secondary Cards */
+    .secondary-cards{
+        display:grid;
+        grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+        gap:20px;
+        margin-bottom:30px;
+    }
+    .card{
+        background:#1e1e1e;
+        border-radius:15px;
+        padding:20px;
+        box-shadow:0 0 20px rgba(0,255,221,0.2);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover{
+        transform:translateY(-5px);
+        box-shadow:0 0 30px rgba(0,255,221,0.5);
+    }
+    .card h2{ color:#00ffdd; margin-bottom:10px;}
+    .card p{ color:#aaa; margin:5px 0;}
+
+    /* Upcoming Events */
+    .events{
+        display:flex;
+        gap:15px;
+        overflow-x:auto;
+        padding:10px 0;
+    }
+    .event-card{
+        min-width:200px;
+        background:#2a2a2a;
+        border-radius:12px;
+        padding:15px;
+        box-shadow:0 0 15px rgba(255,110,199,0.2);
+        flex-shrink:0;
+    }
+    .event-card h3{ font-size:16px; color:#ff6ec7; margin-bottom:10px;}
+    .event-card p{ font-size:14px; color:#aaa;}
+
+    /* Completed Tasks */
+    .completed-tasks{ margin-top:20px; }
+    .completed-tasks h2{ color:#00ffdd; margin-bottom:10px;}
+    .completed-tasks ul{ list-style:none;}
+    .completed-tasks li{
+        background:#1e1e1e;
+        margin-bottom:8px;
+        padding:10px 15px;
+        border-radius:10px;
+        display:flex;
+        align-items:center;
+        color:#777;
+    }
+    .completed-tasks li::before{
+        content:'✔';
+        margin-right:10px;
+        color:#00ffdd;
+    }
+
+    /* Quick Add Button */
+    .add-btn{
+        position:fixed;
+        bottom:30px;
+        right:30px;
+        background:linear-gradient(45deg,#00ffdd,#ff6ec7);
+        border:none;
+        border-radius:50%;
+        width:60px;
+        height:60px;
+        font-size:30px;
+        color:#fff;
+        cursor:pointer;
+        box-shadow:0 0 20px rgba(0,255,221,0.5);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .add-btn:hover{ transform:scale(1.1); box-shadow:0 0 30px rgba(0,255,221,0.8); }
+
+    /* Footer */
+    footer{ margin-top:40px; text-align:center; color:#aaa; font-size:14px; }
+
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav>
+    <h1>Fun Tracker</h1>
+    <div class="profile"></div>
+</nav>
+
+<div class="container">
+
+    <!-- Today’s Tasks - Big Card -->
+    <!-- Today’s Tasks - Big Card -->
+<div class="today-tasks">
+    <h2>Today's Tasks</h2>
+  
+    <% if (tasks.length > 0) { %>
+      <% tasks.forEach(task => { %>
+        <div class="task-item">
+          <span><%= task.title %></span>
+          <input type="checkbox" <%= task.completed ? "checked" : "" %> >
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No tasks for today 🎉</p>
+    <% } %>
+  </div>
+  
+
+    <!-- Secondary Cards -->
+    <div class="secondary-cards">
+        <div class="card">
+            <h2>Streak & Motivation</h2>
+            <p>5 days task completion streak!</p>
+            <p>“Consistency is key 🔑”</p>
+        </div>
+
+        <div class="card">
+            <h2>Quick Stats</h2>
+            <p>Tasks this month: 50</p>
+            <p>Completed streak: 12</p>
+            <p>Pending streak: 3</p>
+        </div>
+    </div>
+
+    <!-- Upcoming Events -->
+    <!-- <div class="card">
+        <h2>Upcoming Events</h2>
+        <div class="events">
+            <div class="event-card">
+                <h3>⏳ India vs Pakistan</h3>
+                <p>9 Days Left</p>
+            </div>
+            <div class="event-card">
+                <h3>🎉 Birthday: Alice</h3>
+                <p>3 Days Left</p>
+            </div>
+            <div class="event-card">
+                <h3>📚 Exam</h3>
+                <p>15 Days Left</p>
+            </div>
+        </div>
+        <button class="add-btn" onclick="window.location.href='/add-event'">+</button>
+    </div> -->
+    <div class="card">
+    <h2>Upcoming Events</h2>
+    <div class="events">
+        <% upcoming.forEach(event => { %>
+            <div class="event-card">
+                <h3><%= event.title %></h3>
+                <p><%= event.daysLeft %> </p>
+            </div>
+        <% }) %>
+    </div>
+    <button class="add-btn" onclick="window.location.href='/add-event'">+</button>
+</div>
+
+
+    <!-- Recently Completed Tasks -->
+    <div class="completed-tasks card">
+        <h2>Recently Completed</h2>
+        <ul>
+            <li>Finish project setup</li>
+            <li>Buy groceries</li>
+            <li>Workout 30 min</li>
+        </ul>
+    </div>
+
+</div>
+
+<!-- Quick Add Button -->
+<button class="add-btn" onclick="window.location.href='/tasks'">+</button>
+
+
+  
+
+<footer>© 2025 Fun Tracker • Build your productivity, daily!</footer>
+
+</body>
+</html>
