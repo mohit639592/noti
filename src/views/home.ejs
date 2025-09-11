@@ -135,6 +135,35 @@
     /* Footer */
     footer{ margin-top:40px; text-align:center; color:#aaa; font-size:14px; }
 
+
+
+    /*movie*/
+
+    .movie-card-button{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background: #1e1e1e;
+    color: #00ffdd;
+    text-decoration:none;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 0 20px rgba(0,255,221,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .movie-card-button:hover{
+    transform:translateY(-5px);
+    box-shadow:0 0 30px rgba(0,255,221,0.5);
+  }
+  .movie-card-button h2{
+    margin-bottom:10px;
+    color:#00ffdd;
+  }
+  .movie-card-button p{
+    color:#aaa;
+    font-size:14px;
+  }
 </style>
 </head>
 <body>
@@ -180,6 +209,12 @@
             <p>Pending streak: 3</p>
         </div>
     </div>
+    <div class="secondary-cards">
+        <a href="/movies" class="card movie-card-button">
+          <h2>🎬 Favorite Movies</h2>
+          <p>Click to view & manage your favorite movies</p>
+        </a>
+      </div>
 
     <!-- Upcoming Events -->
     <!-- <div class="card">

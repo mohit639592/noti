@@ -1,90 +1,90 @@
 const express = require("express");
 const usersmodel = require("../models/user.model");
-const Task = require("../models/task.model")
+const Task = require("../models/task.model");
+const event = require("../models/add-event.model");
 const router = express.Router();
-const path = require("path");
-const event = require("../models/add-event.model")
 
-
-router.get("/" ,(req,res)=>{
+router.get("/", (req, res) => {
     res.render("index");
-})
+});
 
-router.get("/sign",(req,res)=>{
-    res.send("Please Enter Data")
-})
+router.get("/sign", (req, res) => {
+    res.send("Please Enter Data");
+});
 
-router.post("/sign",async (req,res)=>{
-    const {email,password} = req.body;
+router.post("/sign", async (req, res) => {
+    const { email, password } = req.body;
 
     await usersmodel.create({
         email,
         password
-    })
-    res.send("SUCCESS")
-})
+    });
+    res.send("SUCCESS");
+});
 
-router.post("/",async(req,res)=>{
-    const {email,password} = req.body;
+// ================== LOGIN ==================
+router.post("/", async (req, res) => {
+    const { email, password } = req.body;
 
-    const user = await usersmodel.findOne({email:email})
+    const user = await usersmodel.findOne({ email });
+    if (!user) return res.send("USER NOT FOUND, PLEASE CONTACT MENTOR");
+    if (user.password !== password) return res.send("Invalid Password");
 
-    if(!user) {
-        return res.send("USER NOT SOUND PLEASE CONTACT TO MENTOR")
-    }
-    if(user.password != password){
-        return res.send("Invalid Password")
-    }
+    // ✅ Session set karo
+    req.session.email = user.email;
+
     res.redirect("/home");
-})
+});
 
-router.get("/home",async (req,res)=>{
+// ================== HOME ==================
+router.get("/home", async (req, res) => {
     try {
-        // aaj ka date nikal lo
+        if (!req.session.email) {
+            return res.send("Please login first");
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-    
+
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
-    
-        // db se aaj ke tasks le aao
+
+        // ✅ Tasks only for logged-in user
         const tasks = await Task.find({
-          date: {
-            $gte: today,
-            $lt: tomorrow
-          }
+            email: req.session.email,
+            date: { $gte: today, $lt: tomorrow }
         });
 
         const todayDate = new Date();
-todayDate.setHours(0, 0, 0, 0);
+        todayDate.setHours(0, 0, 0, 0);
 
-const events = await event.find({}).sort("date");
+        // ✅ Events only for logged-in user
+        const events = await event.find({ email: req.session.email }).sort("date");
 
-const upcoming = events
-  .filter(ev => {
-    const evDate = new Date(ev.date);
-    evDate.setHours(0, 0, 0, 0);
-    return evDate >= todayDate;  // sirf aaj ya aage ke events
-  })
-  .map(ev => {
-    const evDate = new Date(ev.date);
-    evDate.setHours(0, 0, 0, 0);
+        const upcoming = events
+            .filter(ev => {
+                const evDate = new Date(ev.date);
+                evDate.setHours(0, 0, 0, 0);
+                return evDate >= todayDate;
+            })
+            .map(ev => {
+                const evDate = new Date(ev.date);
+                evDate.setHours(0, 0, 0, 0);
 
-    const diffTime = evDate - todayDate; // milliseconds
-    const daysLeft = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const diffTime = evDate - todayDate;
+                const daysLeft = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    return {
-      title: ev.title,
-      daysLeft: daysLeft === 0 ? "Today" : `${daysLeft} Days Left`
-    };
-  });
+                return {
+                    title: ev.title,
+                    daysLeft: daysLeft === 0 ? "Today" : `${daysLeft} Days Left`
+                };
+            });
 
-    
-        // home.ejs ko render karo aur tasks bhejo
-        res.render("home", { tasks,upcoming });
-      } catch (err) {
+        res.render("home", { tasks, upcoming });
+    } catch (err) {
         console.log(err);
         res.send("Error aaya");
-      }
-    });
+    }
+});
+
 module.exports = router;
