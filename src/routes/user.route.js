@@ -4,6 +4,7 @@ const Task = require("../models/task.model");
 const event = require("../models/add-event.model");
 const router = express.Router();
 
+// ================== INDEX / SIGNUP ==================
 router.get("/", (req, res) => {
     res.render("index");
 });
@@ -30,18 +31,14 @@ router.post("/", async (req, res) => {
     if (!user) return res.send("USER NOT FOUND, PLEASE CONTACT MENTOR");
     if (user.password !== password) return res.send("Invalid Password");
 
-    // ✅ Session set karo
-    req.session.email = user.email;
-
+    req.session.email = user.email; // set session
     res.redirect("/home");
 });
 
 // ================== HOME ==================
 router.get("/home", async (req, res) => {
     try {
-        if (!req.session.email) {
-            return res.send("Please login first");
-        }
+        if (!req.session.email) return res.send("Please login first");
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -49,16 +46,23 @@ router.get("/home", async (req, res) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
 
-        // ✅ Tasks only for logged-in user
+        // ✅ Tasks for today (not completed)
         const tasks = await Task.find({
             email: req.session.email,
-            date: { $gte: today, $lt: tomorrow }
+            date: { $gte: today, $lt: tomorrow },
+            completed: false
         });
 
+        // ✅ Recently completed tasks
+        const completedTasks = await Task.find({
+            email: req.session.email,
+            completed: true
+        }).sort({ date: -1 }).limit(5);
+
+        // ✅ Upcoming events
         const todayDate = new Date();
         todayDate.setHours(0, 0, 0, 0);
 
-        // ✅ Events only for logged-in user
         const events = await event.find({ email: req.session.email }).sort("date");
 
         const upcoming = events
@@ -80,10 +84,30 @@ router.get("/home", async (req, res) => {
                 };
             });
 
-        res.render("home", { tasks, upcoming });
+        res.render("home", { tasks, completedTasks, upcoming });
+
     } catch (err) {
         console.log(err);
         res.send("Error aaya");
+    }
+});
+
+// ================== MARK TASKS AS COMPLETED ==================
+router.post("/complete-tasks", async (req, res) => {
+    if (!req.session.email) return res.status(401).send("Please login first");
+
+    const { completedTasks } = req.body; // array of task IDs
+    if (!completedTasks || completedTasks.length === 0) return res.status(400).send("No tasks selected");
+
+    try {
+        await Task.updateMany(
+            { _id: { $in: completedTasks }, email: req.session.email },
+            { $set: { completed: true } }
+        );
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
     }
 });
 
