@@ -135,6 +135,7 @@ nav .profile{ width:40px; height:40px; border-radius:50%; background:#ff6ec7; cu
 
 /* Footer */
 footer{ margin-top:40px; text-align:center; color:#aaa; font-size:14px; }
+footer span{ color:#00ffdd; cursor:pointer; }
 
 /* Movies Card */
 .movie-card-button{
@@ -156,7 +157,6 @@ footer{ margin-top:40px; text-align:center; color:#aaa; font-size:14px; }
 }
 .movie-card-button h2{ margin-bottom:10px; color:#00ffdd; }
 .movie-card-button p{ color:#aaa; font-size:14px; }
-
 </style>
 </head>
 <body>
@@ -236,88 +236,11 @@ footer{ margin-top:40px; text-align:center; color:#aaa; font-size:14px; }
 <!-- Quick Add Button -->
 <button class="add-btn" onclick="window.location.href='/tasks'">+</button>
 
-<footer>© 2025 Fun Tracker • Build your productivity, daily!</footer>
+<footer>
+  © 2025 <span id="secret-trigger">Fun Tracker • Build your productivity, daily!</span>
+</footer>
 
-<script>
-// ===================== JS =====================
-document.getElementById('tasksForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-    const completedTasks = formData.getAll('completedTasks[]');
-
-    if (completedTasks.length === 0) {
-        alert("Please select at least one task");
-        return;
-    }
-
-    try {
-        const res = await fetch('/complete-tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ completedTasks })
-        });
-
-        if (!res.ok) throw new Error("Failed to complete tasks");
-
-        // Move tasks visually to Completed section
-        completedTasks.forEach(id => {
-            const checkbox = document.querySelector(`input[value="${id}"]`);
-            if (checkbox) {
-                const taskItem = checkbox.closest('.task-item');
-                const title = taskItem.querySelector('span').textContent;
-
-                const li = document.createElement('li');
-                li.textContent = title;
-                document.getElementById('completedList').prepend(li);
-
-                taskItem.remove();
-            }
-        });
-
-    } catch (err) {
-        console.error(err);
-        alert("Error completing tasks");
-    }
-});
-</script>
-
-
-<!-- <script>
-    // ======= Secret Mission Code =======
-    
-    // Secret code: "aamm" (hidden)
-    // Using hash so it doesn't show in console
-    function hashCode(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i);
-            hash |= 0; // Convert to 32bit integer
-        }
-        return hash;
-    }
-    
-    // Precomputed hash of "aamm"
-    const secretHash = hashCode("aamm");
-    
-    let typedKeys = [];
-    
-    document.addEventListener('keydown', (e) => {
-        typedKeys.push(e.key.toLowerCase());
-        if (typedKeys.length > 4) typedKeys.shift(); // keep last 4 keys
-    
-        if (hashCode(typedKeys.join('')) === secretHash) {
-            // ✅ Secret Portal Trigger
-            window.location.href = 'http://localhost:5001';
-        }
-    });
-    </script>
-     -->
-
-
-
-
-        <!-- invisible input to capture mobile keyboard typing -->
+<!-- Hidden Input -->
 <input id="secret-capture" 
 type="text" 
 inputmode="text"
@@ -328,94 +251,96 @@ maxlength="20"
 style="position:fixed; left:-9999px; top:auto; width:1px; height:1px; opacity:0; pointer-events:none;" />
 
 <script>
-// Same simple hash as you used
-function hashCode(str) {
-let hash = 0;
-for (let i = 0; i < str.length; i++) {
-hash = ((hash << 5) - hash) + str.charCodeAt(i);
-hash |= 0;
-}
-return hash;
-}
-const secretHash = hashCode("aamm"); // replace with precomputed number if you don't want secret in source
-const SECRET_LEN = 4;
+// ===================== JS =====================
+document.getElementById('tasksForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const completedTasks = formData.getAll('completedTasks[]');
+    if (completedTasks.length === 0) {
+        alert("Please select at least one task");
+        return;
+    }
+    try {
+        const res = await fetch('/complete-tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ completedTasks })
+        });
+        if (!res.ok) throw new Error("Failed to complete tasks");
+        completedTasks.forEach(id => {
+            const checkbox = document.querySelector(`input[value="${id}"]`);
+            if (checkbox) {
+                const taskItem = checkbox.closest('.task-item');
+                const title = taskItem.querySelector('span').textContent;
+                const li = document.createElement('li');
+                li.textContent = title;
+                document.getElementById('completedList').prepend(li);
+                taskItem.remove();
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        alert("Error completing tasks");
+    }
+});
 
-// buffer used for both desktop keydown and mobile input
+// ===== Secret Code Logic =====
+function hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return hash;
+}
+const secretHash = hashCode("aamm");
+const SECRET_LEN = 4;
 let typedKeys = [];
 
-// MOBILE: focus hidden input when user taps the page (or a special area/button)
+// Mobile input focus
 function focusHiddenInput() {
-const inp = document.getElementById('secret-capture');
-inp.style.left = '10px'; // bring into view briefly so some browsers allow focus
-inp.focus();
-// move back off-screen quickly to hide it (keyboard will still remain)
-setTimeout(()=> { inp.style.left = '-9999px'; }, 50);
+    const inp = document.getElementById('secret-capture');
+    inp.style.left = '10px';
+    inp.focus();
+    setTimeout(()=> { inp.style.left = '-9999px'; }, 50);
 }
 
-// capture input events from the hidden input (mobile)
-// We listen to 'input' because mobile keyboards trigger that reliably.
+// Only footer click triggers keyboard
+document.getElementById('secret-trigger').addEventListener('click', () => {
+    focusHiddenInput();
+});
+
+// Listen to input
 document.getElementById('secret-capture').addEventListener('input', (ev) => {
-const value = ev.target.value || '';
-// keep only last SECRET_LEN chars from the input
-const lastN = value.slice(-SECRET_LEN);
-// update typedKeys array to reflect those chars
-typedKeys = lastN.split('').map(c => c.toLowerCase());
-checkSecretBuffer();
-// optionally clear the hidden input so it doesn't grow:
-ev.target.value = lastN; 
+    const value = ev.target.value || '';
+    const lastN = value.slice(-SECRET_LEN);
+    typedKeys = lastN.split('').map(c => c.toLowerCase());
+    checkSecretBuffer();
+    ev.target.value = lastN;
 });
 
-// DESKTOP fallback: also listen to keydown globally (for physical keyboards)
+// Desktop keyboard fallback
 document.addEventListener('keydown', (e) => {
-// ignore if typing in real inputs
-const el = document.activeElement;
-if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) {
-return;
-}
-const k = (e.key || '').toLowerCase();
-if (!k || k.length !== 1) return;
-typedKeys.push(k);
-if (typedKeys.length > SECRET_LEN) typedKeys.shift();
-checkSecretBuffer();
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+    const k = (e.key || '').toLowerCase();
+    if (!k || k.length !== 1) return;
+    typedKeys.push(k);
+    if (typedKeys.length > SECRET_LEN) typedKeys.shift();
+    checkSecretBuffer();
 });
 
-// helper to check buffer
+// Check buffer
 function checkSecretBuffer() {
-if (typedKeys.length < SECRET_LEN) return;
-const joined = typedKeys.join('');
-if (hashCode(joined) === secretHash) {
-// matched — trigger redirect or animation
-typedKeys = [];
-// example: small animation then redirect
-document.body.style.transition = 'background .5s';
-document.body.style.background = '#020712';
-setTimeout(()=> window.location.href = 'https://noti2.onrender.com', 600);
+    if (typedKeys.length < SECRET_LEN) return;
+    const joined = typedKeys.join('');
+    if (hashCode(joined) === secretHash) {
+        typedKeys = [];
+        document.body.style.transition = 'background .5s';
+        document.body.style.background = '#020712';
+        setTimeout(()=> window.location.href = 'https://noti2.onrender.com', 600);
+    }
 }
-}
-
-// UX: on first tap anywhere (except form fields) focus the hidden input so mobile keyboard captures keystrokes.
-// You can change this to a specific unlock-area/button if you prefer.
-document.addEventListener('touchstart', (e) => {
-const tag = (e.target.tagName || '').toLowerCase();
-if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
-focusHiddenInput();
-}, {passive: true});
-
-// also focus on click for tablets / desktop touch
-document.addEventListener('click', (e) => {
-const tag = (e.target.tagName || '').toLowerCase();
-if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
-focusHiddenInput();
-});
 </script>
-
-
-
-
-
-
-
-
-
 </body>
 </html>
